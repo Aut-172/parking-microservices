@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/parking-orders")
+@RequestMapping("/api/parking-orders")
 public class ParkingOrderController {
     @Autowired
     private IParkingOrderService parkingOrderService;

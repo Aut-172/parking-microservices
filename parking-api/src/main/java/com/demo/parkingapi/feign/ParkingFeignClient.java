@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "parking-service", path = "/internal/parking-lots")
+@FeignClient(name = "parking-service", path = "/api/internal/parking-lots")
 public interface ParkingFeignClient {
     @GetMapping
     ParkingLot getById(Long id);

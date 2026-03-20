@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cars")
+@RequestMapping("/api/cars")
 public class CarController {
 
     @Autowired
@@ -25,7 +25,6 @@ public class CarController {
      * 获取当前用户的所有车牌
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public Response<List<Car>> getUserCars() {
         Long userId = getCurrentUserId();
         List<Car> cars = carService.getUserCars(userId);

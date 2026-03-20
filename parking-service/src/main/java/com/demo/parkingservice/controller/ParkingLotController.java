@@ -12,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/parking-lots")
+@RequestMapping("/api/parking-lots")
 public class ParkingLotController {
     @Autowired
     private IParkingLotService parkingLotService;

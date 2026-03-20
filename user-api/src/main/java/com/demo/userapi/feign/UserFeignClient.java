@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 // user-api/src/main/java/com/demo/user/api/feign/UserFeignClient.java
-@FeignClient(name = "user-service", path = "/internal/users")
+@FeignClient(name = "user-service", path = "/api/internal/users")
 public interface UserFeignClient {
     @GetMapping("/phone")
     User getByPhone(String phone);

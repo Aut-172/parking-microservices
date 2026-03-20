@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/internal/users")
+@RequestMapping("/api/internal/users")
 public class UserInternalController {
 
     @Autowired
