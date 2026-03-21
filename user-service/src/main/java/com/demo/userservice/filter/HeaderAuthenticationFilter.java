@@ -29,7 +29,7 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
             // 构造 Authentication 对象
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                    new UsernamePasswordAuthenticationToken(Long.valueOf(userId), null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

@@ -4,6 +4,8 @@ package com.demo.orderservice.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.demo.common.dto.DecrementRequest;
+import com.demo.common.dto.IncrementRequest;
 import com.demo.common.entity.ParkingLot;
 import com.demo.parkingapi.feign.ParkingFeignClient;
 import com.demo.orderservice.dto.OrderCreateRequest;
@@ -46,11 +48,12 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         save(order);
 
         // 3. 更新停车场剩余车位（减1），使用乐观锁保证原子性
-        boolean success = parkingFeignClient.lambdaUpdate()
-                .setSql("available_spaces = available_spaces - 1")
-                .eq(ParkingLot::getId, request.getLotId())
-                .ge(ParkingLot::getAvailableSpaces, 1) // 确保有车位
-                .update();
+        boolean success = false;
+        try {
+            success = parkingFeignClient.decrementAvailable(new DecrementRequest(lot.getId()));
+        } catch (Exception e) {
+            throw new RuntimeException("更新失败："+e.getMessage());
+        }
         if (!success) {
             throw new RuntimeException("更新车位失败，车位可能已被占用");
         }
@@ -93,10 +96,7 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         updateById(order);
 
         // 6. 更新停车场剩余车位（加1）
-        boolean success = parkingFeignClient.lambdaUpdate()
-                .setSql("available_spaces = available_spaces + 1")
-                .eq(ParkingLot::getId, order.getLotId())
-                .update();
+        boolean success = parkingFeignClient.incrementAvailable(new IncrementRequest(order.getLotId()));
         if (!success) {
             throw new RuntimeException("更新车位失败");
         }

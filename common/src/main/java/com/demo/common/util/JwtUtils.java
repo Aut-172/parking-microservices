@@ -50,12 +50,15 @@ public class JwtUtils {
         claims.put("id", user.getId());
         claims.put("phone", user.getPhone());
         claims.put("role", user.getRole());
-        String subject = JsonUtils.toJson(claims);  // 依赖 JsonUtils 工具类
+//        String subject = JsonUtils.toJson(claims);  // 依赖 JsonUtils 工具类
 
         // 生成 JWT token
-        return JwtUtils.createJWT(subject);
+        return JwtUtils.createJWT(claims);
     }
-
+    public static String createJWT(Map<String, Object> claims) {
+        JwtBuilder builder = getJwtBuilder(claims, jwtTtl,getUUID());
+        return builder.compact();
+    }
     /**
      * 生成 JWT 令牌（使用默认过期时间）
      * @param subject 用户数据（JSON 格式）
@@ -92,6 +95,24 @@ public class JwtUtils {
         return Jwts.builder()
                 .setId(uuid)
                 .setSubject(subject)
+                .setIssuer(jwtIssuer)
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .signWith(signatureAlgorithm, secretKey);
+    }
+    private static JwtBuilder getJwtBuilder(Map<String, Object> claims, Long ttlMillis, String uuid) {
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        SecretKey secretKey = generalKey();
+        long nowMillis = System.currentTimeMillis();
+        Date now = new Date(nowMillis);
+        if (ttlMillis == null) {
+            ttlMillis = jwtTtl;
+        }
+        long expMillis = nowMillis + ttlMillis;
+        Date exp = new Date(expMillis);
+        return Jwts.builder()
+                .setId(uuid)
+                .setClaims(claims)
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(now)
                 .setExpiration(exp)

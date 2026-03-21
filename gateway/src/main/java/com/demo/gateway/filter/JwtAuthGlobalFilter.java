@@ -2,7 +2,9 @@ package com.demo.gateway.filter;
 
 import com.demo.common.dto.Response;
 import com.demo.common.entity.User;
+import com.demo.common.util.JsonUtils;
 import com.demo.common.util.JwtUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 @Slf4j
 @Component
@@ -63,22 +67,21 @@ public class JwtAuthGlobalFilter implements GlobalFilter, Ordered {
             log.error("JWT 解析失败", e);
             return unauthorized(exchange, "无效的 token");
         }
-
         // 从 Claims 中提取用户信息（假设 subject 中存放了 JSON 字符串）
-        String subject = claims.getSubject();
-        // 可进一步解析为 Map 或实体类，这里简化示例，直接取出关键字段
-        // 注意：JwtUtils.createUserJWT 将用户信息序列化为 JSON，需要反向解析
-        // 下面演示如何获取用户ID和角色（假设 subject 中包含了 id 和 role）
         Long userId = claims.get("id", Long.class);
         Integer role = claims.get("role", Integer.class);
+
         if (userId == null) {
             return unauthorized(exchange, "用户信息缺失");
         }
-
+        String roleName = "";
+        if(role != null){
+             roleName = role.equals(1)?"ADMIN":"USER";
+        }
         // 将用户信息添加到请求头，传递给下游服务
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header("X-User-Id", String.valueOf(userId))
-                .header("X-User-Role", role != null ? role.toString() : "")
+                .header("X-User-Role", roleName)
                 .build();
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
