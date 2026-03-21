@@ -42,6 +42,7 @@ public class JwtUtils {
         jwtKey = this.instanceJwtKey;
         jwtTtl = this.instanceJwtTtl;
         jwtIssuer = this.instanceJwtIssuer;
+        System.out.println("JwtUtils init called, jwtKey=" + instanceJwtKey);
     }
 
     public static String createUserJWT(User user) {

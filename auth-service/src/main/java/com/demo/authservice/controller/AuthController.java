@@ -65,6 +65,7 @@ public class AuthController {
             return Response.error(e.getMessage());
         } catch (Exception e) {
             // 其他系统异常
+            e.printStackTrace();
             return Response.error("注册失败，请稍后重试");
         }
     }
