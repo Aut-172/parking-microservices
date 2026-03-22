@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.demo.common.dto.RegisterRequest;
 import com.demo.common.entity.User;
+import com.demo.common.exception.BusinessException;
 import com.demo.userservice.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +25,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 1. 检查手机号是否已存在
         User existingUser = lambdaQuery().eq(User::getPhone, request.getPhone()).one();
         if (existingUser != null) {
-            throw new IllegalArgumentException("手机号已注册");
+            throw new BusinessException(409,"手机号已注册");
         }
 
         // 2. 创建新用户并填充属性

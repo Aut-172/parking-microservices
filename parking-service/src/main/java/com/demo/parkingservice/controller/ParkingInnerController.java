@@ -1,6 +1,5 @@
 package com.demo.parkingservice.controller;
 
-import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.demo.common.dto.DecrementRequest;
 import com.demo.common.dto.IncrementRequest;
 import com.demo.common.entity.ParkingLot;

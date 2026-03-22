@@ -1,8 +1,7 @@
-package com.demo.orderservice.handler;
+package com.demo.parkingservice.handler;
 
 import com.demo.common.dto.Response;
 import com.demo.common.exception.BusinessException;
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,26 +28,6 @@ public class GlobalExceptionHandler {
         log.error("服务不可用：{}", e.getMessage());
         Response<?> error = Response.error(503, e.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
-    }
-    // 处理 Feign 异常（网络超时、服务不可达、解码失败等）
-    @ExceptionHandler(FeignException.class)
-    public ResponseEntity<Response<?>> handleFeignException(FeignException e) {
-        log.error("Feign 调用失败，状态码：{}，消息：{}", e.status(), e.getMessage(), e);
-        // 根据 Feign 异常的状态码确定返回给客户端的 HTTP 状态码
-        int statusCode = e.status() != 0 ? e.status() : 503;  // 若状态码为0（通常表示无响应），默认服务不可用
-        String message = "依赖服务调用失败";
-        // 尝试从异常中提取响应体（若存在）
-        if (e.responseBody().isPresent()) {
-            try {
-                String body = new String(e.responseBody().get().array(), java.nio.charset.StandardCharsets.UTF_8);
-                // 如果响应体是标准 Response 格式，可以进一步解析
-                message = "服务返回错误：" + body;
-            } catch (Exception ex) {
-                // 忽略解析错误
-            }
-        }
-        Response<?> error = Response.error(statusCode, message);
-        return ResponseEntity.status(statusCode).body(error);
     }
 
     @ExceptionHandler(Exception.class)

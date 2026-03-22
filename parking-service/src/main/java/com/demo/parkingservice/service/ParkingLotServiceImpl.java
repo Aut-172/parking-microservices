@@ -3,6 +3,7 @@ package com.demo.parkingservice.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.demo.common.exception.BusinessException;
 import com.demo.common.util.RedisUtil;
 import com.demo.parkingservice.dto.ParkingLotCreateRequest;
 import com.demo.common.entity.ParkingLot;
@@ -80,7 +81,7 @@ public class ParkingLotServiceImpl extends ServiceImpl<ParkingLotMapper, Parking
     public ParkingLot createParkingLot(ParkingLotCreateRequest request) {
         // 校验剩余车位不能大于总车位
         if (request.getAvailableSpaces() > request.getTotalSpaces()) {
-            throw new RuntimeException("剩余车位数不能大于总车位数");
+            throw new BusinessException(409,"剩余车位数不能大于总车位数");
         }
 
         ParkingLot lot = new ParkingLot();
@@ -102,12 +103,12 @@ public class ParkingLotServiceImpl extends ServiceImpl<ParkingLotMapper, Parking
     public ParkingLot updateParkingLot(Long id, ParkingLotCreateRequest request) {
         ParkingLot lot = getById(id);
         if (lot == null) {
-            throw new RuntimeException("停车场不存在");
+            throw new BusinessException(403,"停车场不存在");
         }
 
         // 校验剩余车位不能大于总车位
         if (request.getAvailableSpaces() > request.getTotalSpaces()) {
-            throw new RuntimeException("剩余车位数不能大于总车位数");
+            throw new BusinessException(409,"剩余车位数不能大于总车位数");
         }
 
         lot.setName(request.getName());
@@ -132,13 +133,13 @@ public class ParkingLotServiceImpl extends ServiceImpl<ParkingLotMapper, Parking
     public ParkingLot increaseAvailableSpaces(Long id, int increment) {
         ParkingLot lot = getById(id);
         if (lot == null) {
-            throw new RuntimeException("停车场不存在");
+            throw new BusinessException(404,"停车场不存在");
         }
 
         int newSpaces = lot.getAvailableSpaces() + increment;
         // 不能超过总车位
         if (newSpaces > lot.getTotalSpaces()) {
-            throw new RuntimeException("增加后剩余车位数不能超过总车位数");
+            throw new BusinessException(409,"增加后剩余车位数不能超过总车位数");
         }
 
         lot.setAvailableSpaces(newSpaces);

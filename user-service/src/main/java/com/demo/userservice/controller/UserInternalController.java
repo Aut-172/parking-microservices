@@ -2,6 +2,7 @@ package com.demo.userservice.controller;
 
 import com.demo.common.entity.User;
 import com.demo.common.dto.RegisterRequest;
+import com.demo.common.exception.BusinessException;
 import com.demo.userservice.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

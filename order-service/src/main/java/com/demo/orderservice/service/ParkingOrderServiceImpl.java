@@ -47,10 +47,10 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
 
 
         if (lot == null) {
-            throw new RuntimeException("停车场不存在");
+            throw new BusinessException(404,"停车场不存在");
         }
         if (lot.getAvailableSpaces() <= 0) {
-            throw new RuntimeException("停车场已满");
+            throw new BusinessException(409,"停车场已满");
         }
 
         // 2. 创建订单
@@ -67,9 +67,16 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         boolean success = false;
         try {
             success = parkingFeignClient.decrementAvailable(new DecrementRequest(lot.getId()));
-        } catch (Exception e) {
-            throw new RuntimeException("更新失败："+e.getMessage());
+        }  catch (BusinessException e) {
+            // 业务异常，可转换为特定错误码
+            throw new OrderBusinessException(e.getCode(), e.getMessage());
+        } catch (FeignException e) {
+            // Feign 底层异常（网络超时等）
+            throw new OrderBusinessException(500, "服务调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
         }
+
         if (!success) {
             throw new RuntimeException("更新车位失败，车位可能已被占用");
         }
@@ -83,14 +90,15 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         // 1. 查询订单
         ParkingOrder order = getById(request.getOrderId());
         if (order == null) {
-            throw new RuntimeException("订单不存在");
-        }
-        if (order.getStatus() != 0) {
-            throw new RuntimeException("订单不是进行中状态");
+            throw new BusinessException(404,"订单不存在");
         }
         if(!order.getUserId().equals(userId)){
-            throw new RuntimeException("订单不属于当前用户");
+            throw new BusinessException(409,"订单不属于当前用户");
         }
+        if (order.getStatus() != 0) {
+            throw new BusinessException(409,"订单不是进行中状态");
+        }
+
         // 2. 设置离场时间
         LocalDateTime exitTime = LocalDateTime.now();
         order.setExitTime(exitTime);
@@ -110,7 +118,7 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         }
 
         if (lot == null) {
-            throw new RuntimeException("关联的停车场不存在");
+            throw new BusinessException(404,"关联的停车场不存在");
         }
 
         // 4. 计算费用（按小时向上取整）
@@ -138,7 +146,7 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         }
 
         if (!success) {
-            throw new RuntimeException("更新车位失败");
+            throw new BusinessException(500,"更新车位失败");
         }
 
         return order;
