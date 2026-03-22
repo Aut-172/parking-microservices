@@ -2,6 +2,7 @@ package com.demo.orderservice.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.demo.common.dto.Response;
+import com.demo.common.exception.BusinessException;
 import com.demo.orderservice.dto.OrderCreateRequest;
 import com.demo.orderservice.dto.OrderUpdateRequest;
 import com.demo.common.entity.ParkingOrder;
@@ -27,14 +28,14 @@ public class ParkingOrderController {
         // 从 SecurityContext 获取当前登录用户 ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof Long userId)) {
-            return Response.error(401, "用户未登录或登录已过期");
+            throw new BusinessException(401, "用户未登录或登录已过期");
         }
 
         try {
             Long orderId = parkingOrderService.createOrder(userId, request);
             return Response.success(orderId);
         } catch (RuntimeException e) {
-            return Response.error(e.getMessage());
+            throw new BusinessException(500,e.getMessage());
         }
     }
 

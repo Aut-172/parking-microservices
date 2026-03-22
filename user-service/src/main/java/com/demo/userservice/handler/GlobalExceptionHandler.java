@@ -1,5 +1,6 @@
 package com.demo.userservice.handler;
 
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.demo.common.dto.Response;
 import com.demo.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
@@ -35,5 +36,12 @@ public class GlobalExceptionHandler {
         log.error("系统内部错误", e);
         Response<?> error = Response.error(500, "系统内部错误");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(BlockException.class)
+    public ResponseEntity<Response<?>> handleBlockException(BlockException e) {
+        log.warn("触发 Sentinel 限流/熔断：{}", e.getClass().getSimpleName());
+        Response<?> error = Response.error(429, "请求过于频繁，请稍后再试");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableFeignClients(basePackages = "com.demo.userapi.feign")
-@ComponentScan(basePackages = {"com.demo.authservice", "com.demo.common"})
+@ComponentScan(basePackages = {"com.demo.authservice", "com.demo.common","com.demo.userapi.fallback"})
 public class AuthServiceApplication {
 
     public static void main(String[] args) {

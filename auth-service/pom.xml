@@ -84,6 +84,10 @@
 <!--        </dependency>-->
         <!-- 通用模块 -->
         <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.demo</groupId>
             <artifactId>common</artifactId>
         </dependency>
