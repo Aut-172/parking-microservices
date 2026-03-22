@@ -1,11 +1,14 @@
 package com.demo.authservice.controller;
 
 import com.demo.authservice.dto.LoginRequest;
+import com.demo.authservice.exception.AuthBusinessException;
 import com.demo.common.dto.RegisterRequest;
+import com.demo.common.exception.BusinessException;
 import com.demo.common.util.JwtUtils;
 import com.demo.common.dto.Response;
 import com.demo.common.entity.User;
 import com.demo.userapi.feign.UserFeignClient;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +31,16 @@ public class AuthController {
     @PostMapping("/login")
     public Response<String> login(@RequestBody LoginRequest loginRequest) {
         // 1. 根据手机号查询用户
-        User user = userFeignClient.getByPhone(loginRequest.getPhone());
+        User user = null;
+        try {
+            user = userFeignClient.getByPhone(loginRequest.getPhone());
+        } catch (BusinessException e) {
+            throw new AuthBusinessException(e.getCode(),e.getMessage());
+        }catch(FeignException e){
+            throw new AuthBusinessException(500, "服务调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
 
         // 2. 验证用户是否存在及密码是否正确
         if (user == null) {
@@ -60,13 +72,14 @@ public class AuthController {
             User user = userFeignClient.register(registerRequest);
             String token = JwtUtils.createUserJWT(user);
             return Response.success("注册成功",token);
-        } catch (IllegalArgumentException e) {
+        } catch (BusinessException e) {
             // 业务逻辑异常（如手机号已存在）
-            return Response.error(e.getMessage());
-        } catch (Exception e) {
+           throw new AuthBusinessException(e.getCode(),e.getMessage());
+        } catch (FeignException e) {
             // 其他系统异常
-            e.printStackTrace();
-            return Response.error("注册失败，请稍后重试");
+            throw new AuthBusinessException(503,"服务间调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
         }
     }
 

@@ -7,11 +7,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.demo.common.dto.DecrementRequest;
 import com.demo.common.dto.IncrementRequest;
 import com.demo.common.entity.ParkingLot;
+import com.demo.common.exception.BusinessException;
+import com.demo.orderservice.exception.OrderBusinessException;
 import com.demo.parkingapi.feign.ParkingFeignClient;
 import com.demo.orderservice.dto.OrderCreateRequest;
 import com.demo.orderservice.dto.OrderUpdateRequest;
 import com.demo.common.entity.ParkingOrder;
 import com.demo.orderservice.mapper.ParkingOrderMapper;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +32,20 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
     @Transactional
     public Long createOrder(Long userId, OrderCreateRequest request) {
         // 1. 检查停车场是否存在且有空余车位
-        ParkingLot lot = parkingFeignClient.getById(request.getLotId());
+        ParkingLot lot = null;
+        try {
+            lot = parkingFeignClient.getById(request.getLotId());
+        } catch (BusinessException e) {
+            // 业务异常，可转换为特定错误码
+            throw new OrderBusinessException(e.getCode(), e.getMessage());
+        } catch (FeignException e) {
+            // Feign 底层异常（网络超时等）
+            throw new OrderBusinessException(500, "服务调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
+
+
         if (lot == null) {
             throw new RuntimeException("停车场不存在");
         }
@@ -80,7 +96,19 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         order.setExitTime(exitTime);
 
         // 3. 查询关联停车场获取费率
-        ParkingLot lot = parkingFeignClient.getById(order.getLotId());
+        ParkingLot lot = null;
+        try {
+            lot = parkingFeignClient.getById(order.getLotId());
+        }catch (BusinessException e) {
+            // 业务异常，可转换为特定错误码
+            throw new OrderBusinessException(e.getCode(), e.getMessage());
+        } catch (FeignException e) {
+            // Feign 底层异常（网络超时等）
+            throw new OrderBusinessException(500, "服务调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
+
         if (lot == null) {
             throw new RuntimeException("关联的停车场不存在");
         }
@@ -96,7 +124,19 @@ public class ParkingOrderServiceImpl extends ServiceImpl<ParkingOrderMapper, Par
         updateById(order);
 
         // 6. 更新停车场剩余车位（加1）
-        boolean success = parkingFeignClient.incrementAvailable(new IncrementRequest(order.getLotId()));
+        boolean success = false;
+        try {
+            success = parkingFeignClient.incrementAvailable(new IncrementRequest(order.getLotId()));
+        } catch (BusinessException e) {
+            // 业务异常，可转换为特定错误码
+            throw new OrderBusinessException(e.getCode(), e.getMessage());
+        } catch (FeignException e) {
+            // Feign 底层异常（网络超时等）
+            throw new OrderBusinessException(500, "服务调用失败");
+        }catch(Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
+
         if (!success) {
             throw new RuntimeException("更新车位失败");
         }
